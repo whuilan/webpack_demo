@@ -5,6 +5,10 @@ const config = require('./public/config')[isDev ? 'dev' : 'build'];
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssPlugin = require('optimize-css-assets-webpack-plugin');
+const apiMocker = require('mocker-api');
 
 module.exports = {
     output: {
@@ -13,15 +17,19 @@ module.exports = {
         publicPath: '/' //通常是CDN地址
     },
     mode: isDev ? 'development' : 'production',
-    devtool: 'cheap-module-eval-source-map', //开发环境下使用
+    devtool: 'source-map', //开发环境下使用
     devServer: {
-        port: '3000', //默认是8080
-        quiet: false, //默认不启用
-        inline: true, //默认开启 inline 模式，如果设置为false,开启 iframe 模式
-        stats: "errors-only", //终端仅打印 error
-        overlay: false, //默认不启用
-        clientLogLevel: "silent", //日志等级
-        compress: true //是否启用 gzip 压缩
+        before(app){
+            apiMocker(app, path.resolve('./mock/mocker.js'))
+        }
+        // hot:true,
+        // port: '3000', //默认是8080
+        // quiet: false, //默认不启用
+        // inline: true, //默认开启 inline 模式，如果设置为false,开启 iframe 模式
+        // stats: "errors-only", //终端仅打印 error
+        // overlay: false, //默认不启用
+        // clientLogLevel: "silent", //日志等级
+        // compress: true //是否启用 gzip 压缩
     },
     module: {
         rules: [       
@@ -45,17 +53,19 @@ module.exports = {
             },
             {
                 test: /\.(le|c)ss$/,
-                use: ['style-loader', 'css-loader', {
+                use: [{
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        hmr: isDev,
+                        reloadAll: true,
+                    }
+                    },
+                    'css-loader', {
                     loader: 'postcss-loader',
                     options: {
                         plugins: function () {
                             return [
-                                require('autoprefixer')({
-                                    "overrideBrowserslist": [
-                                        ">0.25%",
-                                        "not dead"
-                                    ]
-                                })
+                                require('autoprefixer')()
                             ]
                         }
                     }
@@ -70,6 +80,7 @@ module.exports = {
                         options: {
                             limit: 10240, //10K
                             esModule: false,
+                            outputPath: 'assets',
                             name: '[name]_[hash:6].[ext]'
                         }
                     }
@@ -110,7 +121,14 @@ module.exports = {
             Vue: ['vue/dist/vue.esm.js', 'default'],
             $: 'jquery',
             _map: ['lodash', 'map']
-        })
+        }),
+        new MiniCssExtractPlugin({
+            filename: 'css/[name].css'
+            //个人习惯将css文件放在单独目录下
+            //publicPath:'../'   //如果你的output的publicPath配置的是 './' 这种相对路径，那么如果将css文件放在单独目录下，记得在这里指定一下publicPath 
+        }),
+        new OptimizeCssPlugin(),
+        new webpack.HotModuleReplacementPlugin() //热更新插件
     ]
 }
 
