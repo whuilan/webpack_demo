@@ -17,12 +17,9 @@ module.exports = {
         publicPath: '/' //通常是CDN地址
     },
     mode: isDev ? 'development' : 'production',
-    devtool: 'source-map', //开发环境下使用
+    devtool: 'eval-source-map', //开发环境下使用
     devServer: {
-        before(app){
-            apiMocker(app, path.resolve('./mock/mocker.js'))
-        }
-        // hot:true,
+        hot:true,
         // port: '3000', //默认是8080
         // quiet: false, //默认不启用
         // inline: true, //默认开启 inline 模式，如果设置为false,开启 iframe 模式

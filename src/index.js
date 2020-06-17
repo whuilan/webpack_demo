@@ -10,14 +10,18 @@ class Animal {
 }
 
 const dog = new Animal('dog');
-console.log('aaa')
+console.log('aaabbbbccc')
 
 document.getElementById('btn').onclick = function() {
     import('./handle').then(fn => fn.default());
 }
 
-fetch("user")
-    .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(err => console.log(err));
+if(module && module.hot) {
+  module.hot.accept()
+}
+
+// fetch("user")
+//     .then(response => response.json())
+//     .then(data => console.log(data))
+//     .catch(err => console.log(err));
 
