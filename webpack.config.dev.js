@@ -1,9 +1,10 @@
 const {smart} = require('webpack-merge');
 const base = require('./webpack.config.base');
-
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
+const smp = new SpeedMeasurePlugin();
 const webpack = require('webpack');
 
-module.exports = smart(base, {
+const config = smart(base, {
     mode: 'development',
     devServer: {
         port: '3000',
@@ -37,3 +38,5 @@ module.exports = smart(base, {
         })
     ]
 });
+
+module.exports = smp.wrap(config)
